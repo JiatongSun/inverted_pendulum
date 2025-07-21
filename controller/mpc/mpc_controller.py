@@ -50,8 +50,6 @@ class MPCController(Controller):
         
         # Calculate terminal cost matrix Qf using LQR's continuous-time Riccati equation
         self.Qf = self.compute_terminal_cost_matrix(self.A, self.B, self.Q, self.R)
-        print(self.Qf)
-
 
         # Perform discretization using matrix exponentiation
         self.Ad = scipy.linalg.expm(self.A * self.dt)  # Discrete A matrix

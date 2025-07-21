@@ -36,7 +36,6 @@ def run_pendulum_env(control_method: str = "lqr") -> None:
 
     # Reset env and start simulation
     observation, _ = env.reset()
-    import time
     for idx in range(1000):
         u = controller.compute_control(observation)
         action = np.clip(u, min_action, max_action)
