@@ -7,8 +7,8 @@ This project demonstrates the control of an inverted pendulum using different co
 To get started with this project, clone this repository to your local machine:
 
 ```
-git clone <your-repository-url>
-cd <your-project-directory>
+git clone https://github.com/JiatongSun/inverted_pendulum.git
+cd inverted_pendulum
 ```
 
 ## Requirements
