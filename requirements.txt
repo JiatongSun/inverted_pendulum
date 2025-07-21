@@ -1,0 +1,7 @@
+gymnasium[mujoco]>=1.0.0
+mujoco>=2.3.3
+numpy
+torch
+matplotlib
+scipy
+cvxpy
