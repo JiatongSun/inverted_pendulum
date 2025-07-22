@@ -27,9 +27,9 @@ def run_pendulum_env(control_method: str = "lqr") -> None:
 
     # Select controller
     if control_method == "lqr":
-        controller = LQRController(m_pendulum, m_cart, length, g)
+        controller = LQRController(m_pendulum, m_cart, length, g, timestep)
     elif control_method == "mpc":
-        controller = MPCController(m_pendulum, m_cart, length, g, dt=timestep)
+        controller = MPCController(m_pendulum, m_cart, length, g, timestep)
     else:
         raise NotImplementedError(f"Control method '{control_method}' is not implemented")
 
@@ -50,4 +50,4 @@ def run_pendulum_env(control_method: str = "lqr") -> None:
     env.close()
 
 if __name__ == "__main__":
-    run_pendulum_env(control_method="mpc")
+    run_pendulum_env(control_method="lqr")
