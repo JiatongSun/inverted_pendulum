@@ -5,7 +5,9 @@ import scipy.linalg
 from controller.controller_base import Controller
 
 class LQRController(Controller):
-    def __init__(self, m_pendulum: float, m_cart: float, length: float, g: float, dt: float, Q: np.ndarray = None, R: np.ndarray = None):
+    def __init__(self, m_pendulum: float, m_cart: float, length: float, g: float, dt: float,
+                 u_min: float, u_max: float, x_ref: np.ndarray,
+                 Q: np.ndarray = None, R: np.ndarray = None):
         """
         Initializes the LQR controller with system parameters and cost matrices.
         :param m_pendulum: Mass of the pendulum (kg)
@@ -13,11 +15,14 @@ class LQRController(Controller):
         :param length: Length of the pendulum (m)
         :param g: Gravitational acceleration (m/s^2)
         :param dt: Time step for discretization (seconds)
+        :param u_min: Minimum action/force allowed (N)
+        :param u_max: Maximum action/force allowed (N)
+        :param x_ref: Reference/desired state [x, theta, x_dot, theta_dot]
         :param Q: State cost matrix (optional, default set in LQR)
         :param R: Control input cost matrix (optional, default set in LQR)
         """
         # Initialize the base class with common parameters
-        super().__init__(m_pendulum, m_cart, length, g, dt)
+        super().__init__(m_pendulum, m_cart, length, g, dt, u_min, u_max, x_ref)
 
         # Linearized system matrices (A, B) for the pendulum in the upright position
         self.A = np.array([[0, 0, 1, 0],

@@ -15,9 +15,12 @@ def run_pendulum_env(control_method: str = "lqr") -> None:
     # Simulation timestep
     timestep = env.unwrapped.model.opt.timestep
 
-    # Action space
-    min_action = env.action_space.low
-    max_action = env.action_space.high
+    # Action range
+    u_min = env.action_space.low[0]
+    u_max = env.action_space.high[0]
+
+    # Reference state
+    x_ref = np.zeros(env.observation_space.shape[0])
 
     # System parameters for the pendulum and cart
     m_pendulum = 5.02  # Pendulum mass (kg)
@@ -27,9 +30,9 @@ def run_pendulum_env(control_method: str = "lqr") -> None:
 
     # Select controller
     if control_method == "lqr":
-        controller = LQRController(m_pendulum, m_cart, length, g, timestep)
+        controller = LQRController(m_pendulum, m_cart, length, g, timestep, u_min, u_max, x_ref)
     elif control_method == "mpc":
-        controller = MPCController(m_pendulum, m_cart, length, g, timestep)
+        controller = MPCController(m_pendulum, m_cart, length, g, timestep, u_min, u_max, x_ref)
     else:
         raise NotImplementedError(f"Control method '{control_method}' is not implemented")
 
@@ -38,7 +41,7 @@ def run_pendulum_env(control_method: str = "lqr") -> None:
     observation, _ = env.reset()
     for idx in range(1000):
         u = controller.compute_control(observation)
-        action = np.clip(u, min_action, max_action)
+        action = np.clip(u, u_min, u_max)
         observation, reward, terminated, _, _ = env.step(action)
 
         env.render()

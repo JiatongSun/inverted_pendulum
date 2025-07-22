@@ -6,7 +6,9 @@ import cvxpy as cp
 from controller.controller_base import Controller
 
 class MPCController(Controller):
-    def __init__(self, m_pendulum: float, m_cart: float, length: float, g: float, dt: float, N=10, Q=None, R=None, xr=np.zeros(4), max_force=3.0):
+    def __init__(self, m_pendulum: float, m_cart: float, length: float, g: float, dt: float, 
+                 u_min: float, u_max: float, x_ref: np.ndarray, 
+                 N: int=10, Q: np.ndarray = None, R: np.ndarray = None):
         """
         Initializes the MPC controller with system parameters and hyperparameters.
         :param m_pendulum: Mass of the pendulum (kg)
@@ -14,14 +16,15 @@ class MPCController(Controller):
         :param length: Length of the pendulum (m)
         :param g: Gravitational acceleration (m/s^2)
         :param dt: Time step for discretization (seconds)
+        :param u_min: Minimum action/force allowed (N)
+        :param u_max: Maximum action/force allowed (N)
+        :param x_ref: Reference/desired state [x, theta, x_dot, theta_dot]
         :param N: Number of prediction steps
         :param Q: State cost matrix (optional)
         :param R: Control input cost matrix (optional)
-        :param xr: Desired state
-        :param max_force: Maximum force applied to the cart
         """
         # Initialize the base class with common parameters
-        super().__init__(m_pendulum, m_cart, length, g, dt)
+        super().__init__(m_pendulum, m_cart, length, g, dt, u_min, u_max, x_ref)
 
         self.N = N  # Prediction horizon
 
@@ -33,8 +36,6 @@ class MPCController(Controller):
 
         self.Q = Q
         self.R = R
-        self.xr = xr
-        self.max_force = max_force
 
         # Linearized system matrices (A, B) for the pendulum in the upright position
         self.A = np.array([[0, 0, 1, 0],
@@ -83,14 +84,14 @@ class MPCController(Controller):
         cost = 0
         constraints = [self.x[0, :] == state]  # Initial state constraint
         for t in range(self.N):
-            cost += cp.quad_form(self.x[t, :] - self.xr, self.Q)  # State error cost
+            cost += cp.quad_form(self.x[t, :] - self.x_ref, self.Q)  # State error cost
             cost += cp.quad_form(self.u[t], self.R)  # Control input cost
             # Model dynamics: x_{t+1} = Ad * x_t + Bd * u_t (discrete-time model)
             constraints += [self.x[t+1, :] == self.Ad @ self.x[t, :] + self.Bd @ self.u[t]]
-            # Control input bounds: -max_force <= u_t <= max_force
-            constraints += [self.u[t] <= self.max_force, self.u[t] >= -self.max_force]
+            # Control input bounds: u_min <= u_t <= u_max
+            constraints += [self.u[t] <= self.u_max, self.u[t] >= self.u_min]
         
-        cost += cp.quad_form(self.x[self.N, :] - self.xr, self.Qf)  # Terminal state error cost
+        cost += cp.quad_form(self.x[self.N, :] - self.x_ref, self.Qf)  # Terminal state error cost
 
         # Define the optimization problem
         problem = cp.Problem(cp.Minimize(cost), constraints)
